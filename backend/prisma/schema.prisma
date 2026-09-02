@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  CANDIDATE
+  RECRUITER
+  ADMIN
+}
+
+enum Seniority {
+  INTERN
+  JUNIOR
+  MID
+  SENIOR
+  SPECIALIST
+}
+
+enum JobStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+enum RequirementType {
+  REQUIRED
+  DIFFERENTIAL
+}
+
+enum ApplicationStatus {
+  ACTIVE
+  APPROVED
+  REJECTED
+  HIRED
+  ARCHIVED
+}
+
+enum EvaluationDecision {
+  APPROVE
+  REJECT
+  HOLD
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique @db.VarChar(191)
+  passwordHash String       @db.VarChar(255)
+  role         UserRole     @default(CANDIDATE)
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  candidate    Candidate?
+  createdJobs  Job[]        @relation("JobCreator")
+  evaluations  Evaluation[] @relation("EvaluationAuthor")
+}
+
+model Candidate {
+  id                String           @id @default(cuid())
+  userId            String?          @unique
+  fullName          String           @db.VarChar(150)
+  email             String           @unique @db.VarChar(191)
+  phone             String?          @db.VarChar(30)
+  city              String?          @db.VarChar(100)
+  state             String?          @db.VarChar(100)
+  linkedinUrl       String?          @db.VarChar(500)
+  portfolioUrl      String?          @db.VarChar(500)
+  resumeUrl         String?          @db.VarChar(500)
+  professionalBio   String?          @db.Text
+  salaryExpectation Decimal?         @db.Decimal(12, 2)
+  seniority         Seniority?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  skills            CandidateSkill[]
+  applications      Application[]
+}
+
+model Skill {
+  id              String           @id @default(cuid())
+  name            String           @unique @db.VarChar(100)
+  createdAt       DateTime         @default(now())
+  candidateSkills CandidateSkill[]
+  jobSkills       JobSkill[]
+}
+
+model CandidateSkill {
+  candidateId String
+  skillId     String
+  level       Int?
+  createdAt   DateTime  @default(now())
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skill       Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([candidateId, skillId])
+}
+
+model Job {
+  id                    String           @id @default(cuid())
+  createdById           String
+  title                 String           @db.VarChar(150)
+  description           String           @db.Text
+  area                  String           @db.VarChar(100)
+  seniority             Seniority?
+  salaryMin             Decimal?         @db.Decimal(12, 2)
+  salaryMax             Decimal?         @db.Decimal(12, 2)
+  applicationDeadline   DateTime
+  status                JobStatus        @default(DRAFT)
+  technologyWeight      Int              @default(40)
+  seniorityWeight       Int              @default(25)
+  salaryWeight          Int              @default(15)
+  differentialWeight    Int              @default(20)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  createdBy             User             @relation("JobCreator", fields: [createdById], references: [id])
+  requirements          JobRequirement[]
+  skills                JobSkill[]
+  stages                SelectionStage[]
+  applications          Application[]
+
+  @@index([status, applicationDeadline])
+}
+
+model JobRequirement {
+  id          String          @id @default(cuid())
+  jobId       String
+  description String          @db.VarChar(500)
+  type        RequirementType
+  weight      Int             @default(1)
+  createdAt   DateTime        @default(now())
+  job         Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, type])
+}
+
+model JobSkill {
+  jobId      String
+  skillId    String
+  isRequired Boolean  @default(false)
+  weight     Int      @default(1)
+  createdAt  DateTime @default(now())
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, skillId])
+}
+
+model SelectionStage {
+  id                  String                    @id @default(cuid())
+  jobId               String
+  name                String                    @db.VarChar(100)
+  position            Int
+  isFinal             Boolean                   @default(false)
+  createdAt           DateTime                  @default(now())
+  job                 Job                       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  currentApplications Application[]             @relation("CurrentStage")
+  historyEntries      ApplicationStageHistory[]
+
+  @@unique([jobId, position])
+}
+
+model Application {
+  id                  String                    @id @default(cuid())
+  candidateId         String
+  jobId               String
+  stageId             String?
+  status              ApplicationStatus         @default(ACTIVE)
+  score               Decimal?                  @db.Decimal(5, 2)
+  requiredCriteriaMet Boolean                   @default(true)
+  appliedAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  candidate           Candidate                 @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job                 Job                       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  stage               SelectionStage?           @relation("CurrentStage", fields: [stageId], references: [id], onDelete: SetNull)
+  stageHistory        ApplicationStageHistory[]
+  evaluations         Evaluation[]
+
+  @@unique([candidateId, jobId])
+  @@index([jobId, status, score])
+  @@index([candidateId])
+}
+
+model ApplicationStageHistory {
+  id            String         @id @default(cuid())
+  applicationId String
+  stageId       String
+  changedAt     DateTime       @default(now())
+  note          String?        @db.Text
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  stage         SelectionStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, changedAt])
+}
+
+model Evaluation {
+  id            String             @id @default(cuid())
+  applicationId String
+  authorId      String
+  decision      EvaluationDecision?
+  note          String?            @db.Text
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  author        User               @relation("EvaluationAuthor", fields: [authorId], references: [id])
+
+  @@index([applicationId, createdAt])
+}

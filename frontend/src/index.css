@@ -1,0 +1,2 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+:root { font-family:'Poppins',Arial,sans-serif; font-size:16px; color:#111; background:#fff; font-synthesis:none; text-rendering:optimizeLegibility; } * { box-sizing:border-box; } body { margin:0; min-width:320px; font-size:16px; } button,input { font:inherit; } a { color:inherit; }
