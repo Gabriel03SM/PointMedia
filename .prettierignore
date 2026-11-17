@@ -1,0 +1,9 @@
+node_modules
+dist
+.tmp
+.local
+Imagens
+apps/api/src/generated
+docs/instruções.md
+docs/observacaoCodex.md
+AGENTS.md

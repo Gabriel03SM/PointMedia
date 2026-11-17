@@ -1,0 +1,25 @@
+# Modelo de serviço Linux; revisar caminhos, usuário e ambiente antes de instalar.
+[Unit]
+Description=Point Media API
+After=network.target
+
+[Service]
+Type=simple
+User=pointmedia
+Group=pointmedia
+WorkingDirectory=/srv/pointmedia/current
+EnvironmentFile=/etc/pointmedia/api.env
+ExecStart=/usr/bin/node /srv/pointmedia/current/apps/api/dist/main.js
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/pointmedia/resumes
+
+[Install]
+WantedBy=multi-user.target

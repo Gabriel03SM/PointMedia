@@ -1,0 +1,61 @@
+# Incluir no contexto http {}. Substituir domínio, caminhos e certificados.
+# O proxy é o único ponto público; API somente em 127.0.0.1:3000.
+log_format pointmedia_safe '$time_iso8601 status=$status bytes=$body_bytes_sent '
+                          'duration=$request_time request_id=$upstream_http_x_request_id';
+
+server {
+    listen 80;
+    server_name talentos.example.invalid;
+    return 308 https://talentos.example.invalid$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name talentos.example.invalid;
+    root /srv/pointmedia/current/apps/web/dist;
+    index index.html;
+    server_tokens off;
+    ssl_certificate /etc/pointmedia/tls/fullchain.pem;
+    ssl_certificate_key /etc/pointmedia/tls/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    client_max_body_size 6m;
+    client_body_timeout 30s;
+
+    access_log /var/log/nginx/pointmedia.access.log pointmedia_safe;
+    error_log /var/log/nginx/pointmedia.error.log warn;
+
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header Referrer-Policy no-referrer always;
+    add_header Permissions-Policy 'camera=(), microphone=(), geolocation=()' always;
+    add_header Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests" always;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host talentos.example.invalid;
+        proxy_set_header X-Forwarded-Host talentos.example.invalid;
+        proxy_set_header X-Forwarded-Proto https;
+        # Sobrescrever, não concatenar a cadeia que o cliente possa ter enviado.
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Forwarded "";
+        proxy_set_header Connection "";
+        proxy_read_timeout 60s;
+        proxy_cache off;
+    }
+
+    location /assets/ {
+        expires 1y;
+        try_files $uri =404;
+    }
+
+    location ~ (^|/)\. {
+        deny all;
+    }
+
+    location / {
+        expires -1;
+        try_files $uri $uri/ /index.html;
+    }
+}

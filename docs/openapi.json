@@ -1,0 +1,6104 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Point Media — Indicadores e processo seletivo",
+    "version": "0.7.1",
+    "description": "Fases 1–6: recrutamento, decisões humanas, agregados privados e fronteira opcional de IA. IA permanece desativada sem provedor; dados pessoais não são enviados para analytics externo. Cadastro de candidato restrito ao envio final da vaga ou banco de talentos."
+  },
+  "servers": [
+    {
+      "url": "/api"
+    }
+  ],
+  "security": [
+    {
+      "sessionCookie": []
+    }
+  ],
+  "paths": {
+    "/health/live": {
+      "get": {
+        "operationId": "liveness",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Processo ativo"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "readiness",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Banco disponível"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "openapi",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Este documento"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "registerCandidate",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Register"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "string",
+                    "description": "JSON de RegistrationData (sem envelope adicional), até 128 KiB."
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF/DOCX opcional até 5 MiB, validado pelo conteúdo."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Conta e inscrição persistidas na mesma transação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "summary": "Cria conta de candidato somente no envio final da inscrição",
+        "description": "Sem sessão automática. Em erro, nenhuma conta, inscrição ou referência de currículo é mantida. Login posterior usa a senha fornecida. Rate limit compartilhado de autenticação; limite dos dados: 128 KiB; arquivo: 5 MiB."
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "login",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário e cookie HttpOnly. Nunca token em JSON.",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sessão revogada"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "operationId": "changePassword",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["currentPassword", "newPassword"],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 12,
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Senha alterada e todas as sessões revogadas"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "currentUser",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/User"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateAccount",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "email"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 254
+                  },
+                  "phone": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 30,
+                    "pattern": "^[0-9+()\\s.-]*$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/User"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/users/recruiters": {
+      "post": {
+        "operationId": "createRecruiter",
+        "description": "Somente ADMIN. Não aceita role no payload.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password", "jobTitle"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 254
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 12,
+                    "maxLength": 128,
+                    "writeOnly": true
+                  },
+                  "jobTitle": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/User"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/jobs": {
+      "get": {
+        "operationId": "listPublicJobs",
+        "summary": "Consulta pública: somente publicadas com prazo futuro",
+        "security": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          {
+            "in": "query",
+            "name": "seniority",
+            "schema": {
+              "type": "string",
+              "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"]
+            }
+          },
+          {
+            "in": "query",
+            "name": "workMode",
+            "schema": {
+              "type": "string",
+              "enum": ["REMOTE", "HYBRID", "ONSITE"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/jobs/{id}": {
+      "get": {
+        "operationId": "getPublicJob",
+        "summary": "Vaga publicada/encerrada; rascunho e cancelada retornam 404",
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/jobs": {
+      "get": {
+        "operationId": "listManagedJobs",
+        "summary": "RH/ADMIN: listagem por estado efetivo",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": ["DRAFT", "PUBLISHED", "CLOSED", "CANCELLED"]
+            }
+          },
+          {
+            "in": "query",
+            "name": "department",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createJob",
+        "summary": "RH/ADMIN: cria rascunho",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/jobs/{id}": {
+      "get": {
+        "operationId": "getManagedJob",
+        "summary": "RH/ADMIN: detalhe de gestão",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateJob",
+        "summary": "RH/ADMIN: edita rascunho/publicada; versão obsoleta retorna 409",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateJob"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "cancelJob",
+        "summary": "RH/ADMIN: cancelamento lógico, sem apagar histórico",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Version"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/jobs/{id}/status": {
+      "patch": {
+        "operationId": "changeJobStatus",
+        "summary": "RH/ADMIN: publicar, encerrar ou cancelar com versão e prazo válidos",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobStatusInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/candidates/me/profile": {
+      "get": {
+        "operationId": "getOwnProfessionalProfile",
+        "summary": "CANDIDATE: perfil próprio ou profile=null",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveOwnProfessionalProfile",
+        "summary": "CANDIDATE: salvar próprio perfil; criação exige version=0",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfessionalInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfessionalProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeOwnProfessionalProfile",
+        "summary": "CANDIDATE: remover perfil/currículo, preservando conta",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Version"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sem conteúdo"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/candidates": {
+      "get": {
+        "operationId": "listSharedCandidates",
+        "summary": "RH/ADMIN: somente perfis compartilhados e contas ativas",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          {
+            "in": "query",
+            "name": "seniority",
+            "schema": {
+              "type": "string",
+              "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"]
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": ["recent", "name"],
+              "default": "recent"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidatesPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/candidates/{id}/profile": {
+      "get": {
+        "operationId": "getSharedCandidate",
+        "summary": "RH/ADMIN: perfil com compartilhamento vigente; ausente retorna 404",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfessionalProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/candidates/me/resume": {
+      "post": {
+        "operationId": "uploadOwnResume",
+        "summary": "CANDIDATE: um PDF/DOCX privado, até 5 MiB, após salvar perfil",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resume"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeOwnResume",
+        "summary": "CANDIDATE: remover currículo próprio",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sem conteúdo"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "get": {
+        "operationId": "downloadOwnResume",
+        "summary": "CANDIDATE: download próprio",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Download privado como attachment, Cache-Control: no-store",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["no-store"]
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/candidates/{id}/resume": {
+      "get": {
+        "operationId": "downloadSharedResume",
+        "summary": "RH/ADMIN: download somente com compartilhamento vigente",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Download privado como attachment, Cache-Control: no-store",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["no-store"]
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/applications": {
+      "post": {
+        "operationId": "submitApplication",
+        "summary": "CANDIDATE: envia com prazo e unicidade, ou recupera candidatura aceita",
+        "description": "200 APPLICATION: candidatura nova ou já existente, sem duplicação. 200 TALENT_POOL: vaga encerrada e consentimento explícito para futuras oportunidades; application=null. 409: prazo encerrado sem escolha pelo banco. Rascunhos/canceladas retornam 404 para novas inscrições. Retentativa de candidatura aceita recupera o registro original mesmo após encerramento. Consentimento opcional não revoga nem renova automaticamente escolhas independentes.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/applications/me": {
+      "get": {
+        "operationId": "listOwnApplications",
+        "summary": "CANDIDATE: somente candidaturas próprias",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          {
+            "in": "query",
+            "name": "jobId",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+            },
+            "description": "Filtra pela etapa persistida da candidatura."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/applications/me/{id}": {
+      "get": {
+        "operationId": "getOwnApplication",
+        "summary": "CANDIDATE: comprovante próprio; ID alheio retorna 404",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Application"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/applications": {
+      "get": {
+        "operationId": "listManagedApplications",
+        "summary": "RH/ADMIN: candidaturas recebidas, sem ranking",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          {
+            "in": "query",
+            "name": "jobId",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+            },
+            "description": "Filtra pela etapa persistida da candidatura."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementApplicationsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/applications/{id}/profile": {
+      "get": {
+        "operationId": "getApplicationProfile",
+        "summary": "RH/ADMIN: perfil atual autorizado pela candidatura",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfessionalProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/applications/{id}/resume": {
+      "get": {
+        "operationId": "downloadApplicationResume",
+        "summary": "RH/ADMIN: currículo privado autorizado pela candidatura, download auditado",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Download privado como attachment, Cache-Control: no-store",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["no-store"]
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/talent-pool/policy": {
+      "get": {
+        "operationId": "getTalentPolicy",
+        "summary": "Política pública: texto/versionamento e prazo de participação",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TalentPolicy"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/talent-pool/me": {
+      "get": {
+        "operationId": "getOwnTalentMembership",
+        "summary": "CANDIDATE: autorização própria e estado ativo/expirado/revogado",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TalentMembership"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "operationId": "joinTalentPool",
+        "summary": "CANDIDATE: adesão ou renovação explícita por 180 dias configuráveis",
+        "description": "Requer perfil salvo. Retentativas preservam id/prazo de uma autorização ainda válida. Após expiração/revogação, cria novo registro preservando o anterior. Não altera compartilhamento geral ou candidatura.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TalentConsentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TalentMembership"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "leaveTalentPool",
+        "summary": "CANDIDATE: revogação idempotente; bloqueia consultas pelo banco",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sem conteúdo"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/talent-pool": {
+      "get": {
+        "operationId": "listTalents",
+        "summary": "RH/ADMIN: somente candidatos com consentimento ativo",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          {
+            "in": "query",
+            "name": "seniority",
+            "schema": {
+              "type": "string",
+              "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"]
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": ["recent", "name"],
+              "default": "recent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "location",
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            }
+          },
+          {
+            "in": "query",
+            "name": "education",
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            }
+          },
+          {
+            "in": "query",
+            "name": "experience",
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            }
+          },
+          {
+            "in": "query",
+            "name": "salaryMin",
+            "schema": {
+              "type": "string",
+              "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "salaryMax",
+            "schema": {
+              "type": "string",
+              "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidatesPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/talent-pool/{id}/profile": {
+      "get": {
+        "operationId": "getTalentProfile",
+        "summary": "RH/ADMIN: perfil com consentimento não revogado e não expirado",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfessionalProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/talent-pool/{id}/resume": {
+      "get": {
+        "operationId": "downloadTalentResume",
+        "summary": "RH/ADMIN: currículo somente com autorização ativa pelo banco, download auditado",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Download privado como attachment, Cache-Control: no-store",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["no-store"]
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/screening/jobs/{id}/configuration": {
+      "get": {
+        "operationId": "getScreeningConfiguration",
+        "summary": "RH/ADMIN: critérios atuais ou configuração null",
+        "description": "Consulta não grava configuração. Valores iniciais: tecnologias 50%, senioridade 30%, salário 20%, indispensáveis 70% dentro de tecnologias; política de ausência configurável.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningConfigurationState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveScreeningConfiguration",
+        "summary": "RH/ADMIN: salva nova versão imutável dos critérios",
+        "description": "Primeira gravação exige version=0; seguintes exigem versão atual. Pesos inteiros entre 0 e 100, soma dos três critérios igual a 100. Conflito de edição retorna 409; registro anterior e auditoria são preservados.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScreeningConfigurationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningConfigurationState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/screening/jobs/{id}/runs": {
+      "post": {
+        "operationId": "generateScreeningRun",
+        "summary": "RH/ADMIN: gera nova execução determinística com snapshot transacional",
+        "description": "Exige configuração salva e versões atuais. Compara dados estruturados declarados dos inscritos. Grava resultados e auditoria atomicamente; cada execução preserva as anteriores. Conflito concorrente retorna 409 para atualizar e repetir. Não altera status de candidatura.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScreeningRunInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/screening/jobs/{id}/ranking": {
+      "get": {
+        "operationId": "getScreeningRanking",
+        "summary": "RH/ADMIN: última execução ordenada, explicação e cobertura",
+        "description": "Score decrescente (null por último), cobertura decrescente, instante de candidatura e ID crescente. stale=true quando critérios, vaga, perfil ou inscrições mudaram. Notas desconhecidas não são zero; cobertura revela informação disponível. Perfis removidos/inativos não expõem resultados antigos. Comparação relativa somente à vaga.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningRanking"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/applications/{id}": {
+      "get": {
+        "operationId": "getApplicationProcess",
+        "summary": "RH/ADMIN: candidatura e transições permitidas",
+        "description": "Candidato ativo; 404 se indisponível. Fluxo sequencial até aprovação, reprovação em qualquer etapa aberta e terminais sem reabertura.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProcess"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/applications/{id}/stage": {
+      "patch": {
+        "operationId": "transitionApplication",
+        "summary": "RH/ADMIN: decisão humana versionada",
+        "description": "Exige versão atual e justificativa interna não vazia. Etapa, histórico e auditoria atômicos. Mesma versão concorrente permite uma gravação; 409 exige recarga. 400 para salto, repetição ou reabertura. Mensagem opcional publicada somente ao titular no portal, sem envio externo.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationTransitionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProcess"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/applications/{id}/history": {
+      "get": {
+        "operationId": "getInternalApplicationHistory",
+        "summary": "RH/ADMIN: histórico com autoria e justificativa interna",
+        "description": "Versão decrescente. Histórico inclui o recebimento com a data original; imutável por esta API.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalApplicationHistoryPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/management/applications/{id}/notes": {
+      "get": {
+        "operationId": "listRecruiterNotes",
+        "summary": "RH/ADMIN: notas internas paginadas",
+        "description": "Data decrescente e ID crescente. Notas restritas ao recrutamento.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecruiterNotesPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "addRecruiterNote",
+        "summary": "RH/ADMIN: acrescenta nota interna com autoria",
+        "description": "Nota e auditoria atômicas; não altera versão/etapa. Texto 1–2000 após trim, sem edição/exclusão nesta fase.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecruiterNoteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecruiterNote"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/applications/me/{id}/history": {
+      "get": {
+        "operationId": "getOwnApplicationHistory",
+        "summary": "CANDIDATE: histórico próprio e mensagens públicas",
+        "description": "Somente titular; outro candidato recebe 404. Não contém identidade do RH, justificativas nem notas. Versão decrescente.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationHistoryPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/analytics/recruitment": {
+      "get": {
+        "operationId": "getRecruitmentMetrics",
+        "summary": "RH/ADMIN: indicadores reais de recrutamento",
+        "description": "Dias de calendário em Brasília incluindo hoje até a consulta. Coorte definida pelo envio no período. Perfis limitados à autorização de recrutamento, talentos ativos ou candidatura. Scores somente da vaga filtrada e da última execução atualizada; ranking stale oculta os números. Funil mede etapas alcançadas; stages são estados atuais. Conversão é aprovadas atuais / coorte; sem candidaturas, null. Tempo médio até primeira triagem com amostra. Não inclui contatos, currículo, notas ou nomes.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "type": "integer",
+              "enum": [7, 30, 90, 365],
+              "default": 30
+            }
+          },
+          {
+            "in": "query",
+            "name": "jobId",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Vaga específica; obrigatório para média/distribuição de compatibilidade. Sem o filtro, esse campo é null."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Agregados sem dados pessoais",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecruitmentMetrics"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/analytics/recruitment/export": {
+      "get": {
+        "operationId": "exportRecruitmentMetrics",
+        "summary": "RH/ADMIN: exporta agregados do filtro em CSV",
+        "description": "Mesmo período/filtro do painel, sem campos livres ou PII. Download autenticado; sem envio para analytics externo.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "type": "integer",
+              "enum": [7, 30, 90, 365],
+              "default": 30
+            }
+          },
+          {
+            "in": "query",
+            "name": "jobId",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Vaga específica; obrigatório para média/distribuição de compatibilidade. Sem o filtro, esse campo é null."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV com BOM UTF-8, cabeçalho metric,value e Content-Disposition attachment",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/analytics/administration": {
+      "get": {
+        "operationId": "getAdministrationMetrics",
+        "summary": "ADMIN: volume operacional, usuários e ações agregadas",
+        "description": "Somente ADMIN; RH recebe 403. Datas em Brasília; sem atores individuais ou conteúdo de auditoria. Até 10 ações mais frequentes por contagem, desempate pela chave da ação.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "type": "integer",
+              "enum": [7, 30, 90, 365],
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Agregados sem dados pessoais",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdministrationMetrics"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/intelligence/status": {
+      "get": {
+        "operationId": "getIntelligenceStatus",
+        "summary": "RH/ADMIN: disponibilidade da integração opcional de IA",
+        "description": "Sem provedor definido: available=false, provider=null. Não processa documentos, não gera resumo e não faz chamadas externas. Não altera ranking ou etapas. Extração real depende de adapter/configuração futura.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Agregados sem dados pessoais",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntelligenceStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "pm_session"
+      }
+    },
+    "parameters": {
+      "MutationHeader": {
+        "name": "X-Pointmedia-Request",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": ["1"]
+        }
+      }
+    },
+    "responses": {
+      "User": {
+        "description": "Dados públicos da conta",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/User"
+            }
+          }
+        }
+      },
+      "Error": {
+        "description": "Erro validado, sem stack ou segredos",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Login": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        }
+      },
+      "RegisterFields": {
+        "type": "object",
+        "required": ["name", "email", "password"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        }
+      },
+      "Register": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RegistrationData"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "email", "phone", "jobTitle", "role", "passwordChangedAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "jobTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "enum": ["CANDIDATE", "RECRUITER", "ADMIN"]
+          },
+          "passwordChangedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["statusCode", "message", "requestId"],
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Version": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version"],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "JobInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "description",
+          "workMode",
+          "seniorityNotApplicable",
+          "locationNotApplicable",
+          "salaryNotApplicable",
+          "closesAt",
+          "requiredSkills",
+          "desiredSkills"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 3
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 12000,
+            "minLength": 20
+          },
+          "department": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2
+          },
+          "workMode": {
+            "type": "string",
+            "enum": ["REMOTE", "HYBRID", "ONSITE"]
+          },
+          "seniority": {
+            "type": "string",
+            "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"],
+            "nullable": true
+          },
+          "seniorityNotApplicable": {
+            "type": "boolean"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 160,
+            "nullable": true,
+            "minLength": 2
+          },
+          "locationNotApplicable": {
+            "type": "boolean"
+          },
+          "salaryMin": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+            "nullable": true,
+            "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+          },
+          "salaryMax": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+            "nullable": true,
+            "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+          },
+          "salaryNotApplicable": {
+            "type": "boolean"
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Instante ISO 8601 com Z ou offset. O formulário interpreta o horário em America/Sao_Paulo."
+          },
+          "requiredSkills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            }
+          },
+          "desiredSkills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            }
+          }
+        }
+      },
+      "UpdateJob": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "description",
+          "workMode",
+          "seniorityNotApplicable",
+          "locationNotApplicable",
+          "salaryNotApplicable",
+          "closesAt",
+          "requiredSkills",
+          "desiredSkills",
+          "version"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 3
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 12000,
+            "minLength": 20
+          },
+          "department": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2
+          },
+          "workMode": {
+            "type": "string",
+            "enum": ["REMOTE", "HYBRID", "ONSITE"]
+          },
+          "seniority": {
+            "type": "string",
+            "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"],
+            "nullable": true
+          },
+          "seniorityNotApplicable": {
+            "type": "boolean"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 160,
+            "nullable": true,
+            "minLength": 2
+          },
+          "locationNotApplicable": {
+            "type": "boolean"
+          },
+          "salaryMin": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+            "nullable": true,
+            "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+          },
+          "salaryMax": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+            "nullable": true,
+            "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+          },
+          "salaryNotApplicable": {
+            "type": "boolean"
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Instante ISO 8601 com Z ou offset. O formulário interpreta o horário em America/Sao_Paulo."
+          },
+          "requiredSkills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            }
+          },
+          "desiredSkills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "JobStatusInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version", "status"],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PUBLISHED", "CLOSED", "CANCELLED"]
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "description",
+          "workMode",
+          "seniorityNotApplicable",
+          "locationNotApplicable",
+          "salaryNotApplicable",
+          "closesAt",
+          "requiredSkills",
+          "desiredSkills",
+          "id",
+          "version",
+          "status",
+          "effectiveStatus",
+          "publishedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 3
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 12000,
+            "minLength": 20
+          },
+          "department": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2
+          },
+          "workMode": {
+            "type": "string",
+            "enum": ["REMOTE", "HYBRID", "ONSITE"]
+          },
+          "seniority": {
+            "type": "string",
+            "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"],
+            "nullable": true
+          },
+          "seniorityNotApplicable": {
+            "type": "boolean"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 160,
+            "nullable": true,
+            "minLength": 2
+          },
+          "locationNotApplicable": {
+            "type": "boolean"
+          },
+          "salaryMin": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+            "nullable": true,
+            "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+          },
+          "salaryMax": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+            "nullable": true,
+            "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+          },
+          "salaryNotApplicable": {
+            "type": "boolean"
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Instante ISO 8601 com Z ou offset. O formulário interpreta o horário em America/Sao_Paulo."
+          },
+          "requiredSkills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            }
+          },
+          "desiredSkills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            }
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "PUBLISHED", "CLOSED", "CANCELLED"]
+          },
+          "effectiveStatus": {
+            "type": "string",
+            "enum": ["DRAFT", "PUBLISHED", "CLOSED", "CANCELLED"]
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Resume": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "originalName", "mimeType", "size", "createdAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalName": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "application/pdf",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            ]
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5242880
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfessionalInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "name",
+          "headline",
+          "about",
+          "skills",
+          "experience",
+          "education",
+          "notApplicable",
+          "shareWithRecruiters"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "nullable": true,
+            "pattern": "^[\\d+()\\s.-]*$"
+          },
+          "headline": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 160,
+            "nullable": true,
+            "minLength": 2
+          },
+          "seniority": {
+            "type": "string",
+            "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"],
+            "nullable": true
+          },
+          "expectedSalary": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+            "nullable": true,
+            "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+          },
+          "linkedin": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true,
+            "format": "uri"
+          },
+          "portfolio": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true,
+            "format": "uri"
+          },
+          "about": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 150
+          },
+          "skills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            }
+          },
+          "experience": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["company", "position", "startedMonth", "description"],
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 2
+                },
+                "position": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 2
+                },
+                "startedMonth": {
+                  "type": "string",
+                  "pattern": "^(19|20)\\d{2}-(0[1-9]|1[0-2])$"
+                },
+                "endedMonth": {
+                  "type": "string",
+                  "nullable": true,
+                  "pattern": "^(19|20)\\d{2}-(0[1-9]|1[0-2])$"
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 2000
+                }
+              }
+            }
+          },
+          "education": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["institution", "course", "startedYear"],
+              "properties": {
+                "institution": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 2
+                },
+                "course": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 2
+                },
+                "startedYear": {
+                  "type": "integer",
+                  "minimum": 1900,
+                  "maximum": 2099
+                },
+                "finishedYear": {
+                  "type": "integer",
+                  "nullable": true,
+                  "minimum": 1900,
+                  "maximum": 2099
+                }
+              }
+            }
+          },
+          "notApplicable": {
+            "type": "array",
+            "maxItems": 8,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "LOCATION",
+                "SENIORITY",
+                "SALARY",
+                "LINKEDIN",
+                "PORTFOLIO",
+                "SKILLS",
+                "EXPERIENCE",
+                "EDUCATION"
+              ]
+            }
+          },
+          "shareWithRecruiters": {
+            "type": "boolean",
+            "description": "Compartilhamento geral independente. false bloqueia as rotas /candidates do RH; não revoga consentimentos separados de candidaturas ou banco de talentos."
+          }
+        }
+      },
+      "ProfessionalProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "name",
+          "headline",
+          "about",
+          "skills",
+          "experience",
+          "education",
+          "notApplicable",
+          "shareWithRecruiters",
+          "userId",
+          "email",
+          "updatedAt",
+          "resume"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "nullable": true,
+            "pattern": "^[\\d+()\\s.-]*$"
+          },
+          "headline": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 160,
+            "nullable": true,
+            "minLength": 2
+          },
+          "seniority": {
+            "type": "string",
+            "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"],
+            "nullable": true
+          },
+          "expectedSalary": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+            "nullable": true,
+            "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+          },
+          "linkedin": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true,
+            "format": "uri"
+          },
+          "portfolio": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true,
+            "format": "uri"
+          },
+          "about": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 150
+          },
+          "skills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            }
+          },
+          "experience": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["company", "position", "startedMonth", "description"],
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 2
+                },
+                "position": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 2
+                },
+                "startedMonth": {
+                  "type": "string",
+                  "pattern": "^(19|20)\\d{2}-(0[1-9]|1[0-2])$"
+                },
+                "endedMonth": {
+                  "type": "string",
+                  "nullable": true,
+                  "pattern": "^(19|20)\\d{2}-(0[1-9]|1[0-2])$"
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 2000
+                }
+              }
+            }
+          },
+          "education": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["institution", "course", "startedYear"],
+              "properties": {
+                "institution": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 2
+                },
+                "course": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 2
+                },
+                "startedYear": {
+                  "type": "integer",
+                  "minimum": 1900,
+                  "maximum": 2099
+                },
+                "finishedYear": {
+                  "type": "integer",
+                  "nullable": true,
+                  "minimum": 1900,
+                  "maximum": 2099
+                }
+              }
+            }
+          },
+          "notApplicable": {
+            "type": "array",
+            "maxItems": 8,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "LOCATION",
+                "SENIORITY",
+                "SALARY",
+                "LINKEDIN",
+                "PORTFOLIO",
+                "SKILLS",
+                "EXPERIENCE",
+                "EDUCATION"
+              ]
+            }
+          },
+          "shareWithRecruiters": {
+            "type": "boolean",
+            "description": "Compartilhamento geral independente. false bloqueia as rotas /candidates do RH; não revoga consentimentos separados de candidaturas ou banco de talentos."
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resume": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "originalName", "mimeType", "size", "createdAt"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "originalName": {
+                "type": "string",
+                "maxLength": 180
+              },
+              "mimeType": {
+                "type": "string",
+                "enum": [
+                  "application/pdf",
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                ]
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5242880
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "nullable": true
+          }
+        }
+      },
+      "OwnProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["profile"],
+        "properties": {
+          "profile": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "version",
+              "name",
+              "headline",
+              "about",
+              "skills",
+              "experience",
+              "education",
+              "notApplicable",
+              "shareWithRecruiters",
+              "userId",
+              "email",
+              "updatedAt",
+              "resume"
+            ],
+            "properties": {
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 2
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 30,
+                "nullable": true,
+                "pattern": "^[\\d+()\\s.-]*$"
+              },
+              "headline": {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 2
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 160,
+                "nullable": true,
+                "minLength": 2
+              },
+              "seniority": {
+                "type": "string",
+                "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"],
+                "nullable": true
+              },
+              "expectedSalary": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,7})(\\.\\d{1,2})?$",
+                "nullable": true,
+                "description": "Reais em decimal, sem separador de milhar; null somente quando Não se aplica."
+              },
+              "linkedin": {
+                "type": "string",
+                "maxLength": 500,
+                "nullable": true,
+                "format": "uri"
+              },
+              "portfolio": {
+                "type": "string",
+                "maxLength": 500,
+                "nullable": true,
+                "format": "uri"
+              },
+              "about": {
+                "type": "string",
+                "maxLength": 5000,
+                "minLength": 150
+              },
+              "skills": {
+                "type": "array",
+                "maxItems": 40,
+                "items": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                }
+              },
+              "experience": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["company", "position", "startedMonth", "description"],
+                  "properties": {
+                    "company": {
+                      "type": "string",
+                      "maxLength": 160,
+                      "minLength": 2
+                    },
+                    "position": {
+                      "type": "string",
+                      "maxLength": 160,
+                      "minLength": 2
+                    },
+                    "startedMonth": {
+                      "type": "string",
+                      "pattern": "^(19|20)\\d{2}-(0[1-9]|1[0-2])$"
+                    },
+                    "endedMonth": {
+                      "type": "string",
+                      "nullable": true,
+                      "pattern": "^(19|20)\\d{2}-(0[1-9]|1[0-2])$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 2000
+                    }
+                  }
+                }
+              },
+              "education": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["institution", "course", "startedYear"],
+                  "properties": {
+                    "institution": {
+                      "type": "string",
+                      "maxLength": 160,
+                      "minLength": 2
+                    },
+                    "course": {
+                      "type": "string",
+                      "maxLength": 160,
+                      "minLength": 2
+                    },
+                    "startedYear": {
+                      "type": "integer",
+                      "minimum": 1900,
+                      "maximum": 2099
+                    },
+                    "finishedYear": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 1900,
+                      "maximum": 2099
+                    }
+                  }
+                }
+              },
+              "notApplicable": {
+                "type": "array",
+                "maxItems": 8,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "LOCATION",
+                    "SENIORITY",
+                    "SALARY",
+                    "LINKEDIN",
+                    "PORTFOLIO",
+                    "SKILLS",
+                    "EXPERIENCE",
+                    "EDUCATION"
+                  ]
+                }
+              },
+              "shareWithRecruiters": {
+                "type": "boolean",
+                "description": "Escolha explícita de compartilhar com recrutamento. false revoga acesso do RH ao perfil e currículo."
+              },
+              "userId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "resume": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "originalName", "mimeType", "size", "createdAt"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "originalName": {
+                    "type": "string",
+                    "maxLength": 180
+                  },
+                  "mimeType": {
+                    "type": "string",
+                    "enum": [
+                      "application/pdf",
+                      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    ]
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5242880
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "nullable": true
+              }
+            },
+            "nullable": true
+          }
+        }
+      },
+      "JobsPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "total", "page", "pageSize"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        }
+      },
+      "CandidatesPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "total", "page", "pageSize"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfessionalProfile"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        }
+      },
+      "TalentConsent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "consentVersion": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "grantedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": ["id", "consentVersion", "grantedAt", "expiresAt", "revokedAt"]
+      },
+      "TalentMembership": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "consent": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "consentVersion": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "grantedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "revokedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              }
+            },
+            "required": ["id", "consentVersion", "grantedAt", "expiresAt", "revokedAt"],
+            "nullable": true
+          },
+          "retentionDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650,
+            "default": 180
+          }
+        },
+        "required": ["active", "consent", "retentionDays"]
+      },
+      "TalentPolicy": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "consentVersion": {
+            "type": "string",
+            "enum": ["talent-2026-10-29"]
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "retentionDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650,
+            "default": 180
+          }
+        },
+        "required": ["consentVersion", "text", "retentionDays"]
+      },
+      "TalentConsentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "consent": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "consentVersion": {
+            "type": "string",
+            "enum": ["talent-2026-10-29"]
+          }
+        },
+        "required": ["consent", "consentVersion"]
+      },
+      "ApplicationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "processConsent": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "processConsentVersion": {
+            "type": "string",
+            "enum": ["application-2026-10-29"]
+          },
+          "talentPoolConsent": {
+            "type": "boolean"
+          },
+          "talentConsentVersion": {
+            "type": "string",
+            "enum": ["talent-2026-10-29"],
+            "description": "Obrigatório quando talentPoolConsent=true."
+          }
+        },
+        "required": ["jobId", "processConsent", "processConsentVersion", "talentPoolConsent"]
+      },
+      "Application": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "job": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "effectiveStatus": {
+                "type": "string",
+                "enum": ["DRAFT", "PUBLISHED", "CLOSED", "CANCELLED"]
+              },
+              "workMode": {
+                "type": "string",
+                "enum": ["REMOTE", "HYBRID", "ONSITE"]
+              }
+            },
+            "required": ["id", "title", "effectiveStatus", "workMode"]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["id", "status", "submittedAt", "job", "version"]
+      },
+      "ManagementApplication": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "job": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "effectiveStatus": {
+                "type": "string",
+                "enum": ["DRAFT", "PUBLISHED", "CLOSED", "CANCELLED"]
+              },
+              "workMode": {
+                "type": "string",
+                "enum": ["REMOTE", "HYBRID", "ONSITE"]
+              }
+            },
+            "required": ["id", "title", "effectiveStatus", "workMode"]
+          },
+          "candidate": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "userId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "headline": {
+                "type": "string",
+                "maxLength": 120,
+                "nullable": true
+              }
+            },
+            "required": ["userId", "name", "headline"]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["id", "status", "submittedAt", "job", "candidate", "version"]
+      },
+      "ApplicationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": ["APPLICATION", "TALENT_POOL"]
+          },
+          "application": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "RECEIVED",
+                  "SCREENING",
+                  "SHORTLISTED",
+                  "INTERVIEW",
+                  "APPROVED",
+                  "REJECTED"
+                ]
+              },
+              "submittedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "job": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "effectiveStatus": {
+                    "type": "string",
+                    "enum": ["DRAFT", "PUBLISHED", "CLOSED", "CANCELLED"]
+                  },
+                  "workMode": {
+                    "type": "string",
+                    "enum": ["REMOTE", "HYBRID", "ONSITE"]
+                  }
+                },
+                "required": ["id", "title", "effectiveStatus", "workMode"]
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": ["id", "status", "submittedAt", "job", "version"],
+            "nullable": true
+          },
+          "talentConsent": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "consentVersion": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "grantedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "revokedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              }
+            },
+            "required": ["id", "consentVersion", "grantedAt", "expiresAt", "revokedAt"],
+            "nullable": true
+          }
+        },
+        "required": ["outcome", "application", "talentConsent"]
+      },
+      "ApplicationsPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Application"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["items", "total", "page", "pageSize"]
+      },
+      "ManagementApplicationsPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagementApplication"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["items", "total", "page", "pageSize"]
+      },
+      "ScreeningSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "skillsWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "seniorityWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "salaryWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "mandatorySkillsShare": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "requireCompleteData": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "skillsWeight",
+          "seniorityWeight",
+          "salaryWeight",
+          "mandatorySkillsShare",
+          "requireCompleteData"
+        ]
+      },
+      "ScreeningConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "skillsWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "seniorityWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "salaryWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "mandatorySkillsShare": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "requireCompleteData": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "jobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "algorithmVersion": {
+            "type": "string",
+            "enum": ["declared-v1"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "skillsWeight",
+          "seniorityWeight",
+          "salaryWeight",
+          "mandatorySkillsShare",
+          "requireCompleteData",
+          "id",
+          "jobId",
+          "version",
+          "algorithmVersion",
+          "createdAt"
+        ]
+      },
+      "ScreeningConfigurationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "skillsWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "seniorityWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "salaryWeight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "mandatorySkillsShare": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "requireCompleteData": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "skillsWeight",
+          "seniorityWeight",
+          "salaryWeight",
+          "mandatorySkillsShare",
+          "requireCompleteData",
+          "version"
+        ]
+      },
+      "ScreeningConfigurationState": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "configuration": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "skillsWeight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "seniorityWeight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "salaryWeight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "mandatorySkillsShare": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "requireCompleteData": {
+                "type": "boolean"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "jobId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "algorithmVersion": {
+                "type": "string",
+                "enum": ["declared-v1"]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "skillsWeight",
+              "seniorityWeight",
+              "salaryWeight",
+              "mandatorySkillsShare",
+              "requireCompleteData",
+              "id",
+              "jobId",
+              "version",
+              "algorithmVersion",
+              "createdAt"
+            ],
+            "nullable": true
+          },
+          "defaults": {
+            "$ref": "#/components/schemas/ScreeningSettings"
+          },
+          "jobVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["configuration", "defaults", "jobVersion"]
+      },
+      "ScreeningRunInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "configurationVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "jobVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["configurationVersion", "jobVersion"]
+      },
+      "ScreeningRun": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "configurationVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "algorithmVersion": {
+            "type": "string"
+          },
+          "jobVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evaluatedCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reviewRequiredCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "withoutScoreCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "sequence",
+          "configurationVersion",
+          "algorithmVersion",
+          "jobVersion",
+          "createdAt",
+          "evaluatedCount",
+          "reviewRequiredCount",
+          "withoutScoreCount"
+        ]
+      },
+      "ScreeningCriterion": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": ["SKILLS", "SENIORITY", "SALARY"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["EVALUATED", "NOT_INFORMED", "NOT_APPLICABLE"]
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "contribution": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["key", "status", "weight", "score", "contribution", "explanation", "notes"]
+      },
+      "RankedCandidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "coverage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reviewRequired": {
+            "type": "boolean"
+          },
+          "reviewReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "criteria": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScreeningCriterion"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "profileVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "candidate": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "userId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "headline": {
+                "type": "string"
+              }
+            },
+            "required": ["userId", "name", "headline"]
+          }
+        },
+        "required": [
+          "score",
+          "coverage",
+          "reviewRequired",
+          "reviewReasons",
+          "criteria",
+          "applicationId",
+          "submittedAt",
+          "profileVersion",
+          "candidate"
+        ]
+      },
+      "ScreeningRanking": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "configuration": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "skillsWeight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "seniorityWeight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "salaryWeight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "mandatorySkillsShare": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "requireCompleteData": {
+                "type": "boolean"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "jobId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "algorithmVersion": {
+                "type": "string",
+                "enum": ["declared-v1"]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "skillsWeight",
+              "seniorityWeight",
+              "salaryWeight",
+              "mandatorySkillsShare",
+              "requireCompleteData",
+              "id",
+              "jobId",
+              "version",
+              "algorithmVersion",
+              "createdAt"
+            ],
+            "nullable": true
+          },
+          "run": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "sequence": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "configurationVersion": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "algorithmVersion": {
+                "type": "string"
+              },
+              "jobVersion": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "evaluatedCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reviewRequiredCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "withoutScoreCount": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "id",
+              "sequence",
+              "configurationVersion",
+              "algorithmVersion",
+              "jobVersion",
+              "createdAt",
+              "evaluatedCount",
+              "reviewRequiredCount",
+              "withoutScoreCount"
+            ],
+            "nullable": true
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "applicationsCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unavailableProfiles": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RankedCandidate"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "configuration",
+          "run",
+          "stale",
+          "applicationsCount",
+          "unavailableProfiles",
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ]
+      },
+      "ApplicationProcess": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "job": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "effectiveStatus": {
+                "type": "string",
+                "enum": ["DRAFT", "PUBLISHED", "CLOSED", "CANCELLED"]
+              },
+              "workMode": {
+                "type": "string",
+                "enum": ["REMOTE", "HYBRID", "ONSITE"]
+              }
+            },
+            "required": ["id", "title", "effectiveStatus", "workMode"]
+          },
+          "candidate": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "userId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "headline": {
+                "type": "string",
+                "maxLength": 120,
+                "nullable": true
+              }
+            },
+            "required": ["userId", "name", "headline"]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "allowedTransitions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "submittedAt",
+          "job",
+          "candidate",
+          "version",
+          "allowedTransitions"
+        ]
+      },
+      "ApplicationStageEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromStatus": {
+            "type": "string",
+            "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"],
+            "nullable": true
+          },
+          "toStatus": {
+            "type": "string",
+            "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publicMessage": {
+            "type": "string",
+            "maxLength": 2000,
+            "nullable": true
+          }
+        },
+        "required": ["id", "fromStatus", "toStatus", "version", "createdAt", "publicMessage"]
+      },
+      "InternalStageEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromStatus": {
+            "type": "string",
+            "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"],
+            "nullable": true
+          },
+          "toStatus": {
+            "type": "string",
+            "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publicMessage": {
+            "type": "string",
+            "maxLength": 2000,
+            "nullable": true
+          },
+          "internalReason": {
+            "type": "string",
+            "maxLength": 2000,
+            "nullable": true
+          },
+          "actor": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 120
+              }
+            },
+            "required": ["id", "name"],
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "fromStatus",
+          "toStatus",
+          "version",
+          "createdAt",
+          "publicMessage",
+          "internalReason",
+          "actor"
+        ]
+      },
+      "RecruiterNote": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actor": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 120
+              }
+            },
+            "required": ["id", "name"],
+            "nullable": true
+          }
+        },
+        "required": ["id", "body", "createdAt", "actor"]
+      },
+      "ApplicationTransitionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": ["RECEIVED", "SCREENING", "SHORTLISTED", "INTERVIEW", "APPROVED", "REJECTED"]
+          },
+          "internalReason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1
+          },
+          "publicMessage": {
+            "type": "string",
+            "maxLength": 2000,
+            "nullable": true
+          }
+        },
+        "required": ["version", "status", "internalReason"]
+      },
+      "RecruiterNoteInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1
+          }
+        },
+        "required": ["body"]
+      },
+      "ApplicationHistoryPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationStageEvent"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["items", "total", "page", "pageSize"]
+      },
+      "InternalApplicationHistoryPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InternalStageEvent"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["items", "total", "page", "pageSize"]
+      },
+      "RecruiterNotesPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecruiterNote"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["items", "total", "page", "pageSize"]
+      },
+      "MetricPeriod": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "type": "integer",
+            "enum": [7, 30, 90, 365]
+          },
+          "since": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timeZone": {
+            "type": "string",
+            "enum": ["America/Sao_Paulo"]
+          }
+        },
+        "required": ["days", "since", "until", "timeZone"]
+      },
+      "MetricDay": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": ["date", "count"]
+      },
+      "CompatibilityMetrics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "averageScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "withoutScore": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["label", "count"]
+            }
+          }
+        },
+        "required": [
+          "runId",
+          "generatedAt",
+          "stale",
+          "averageScore",
+          "total",
+          "withoutScore",
+          "bands"
+        ]
+      },
+      "RecruitmentMetrics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/MetricPeriod"
+          },
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "profiles": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "available": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "month": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "talent": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["available", "month", "talent"]
+          },
+          "openJobs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "applications": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seniority": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "seniority": {
+                  "type": "string",
+                  "enum": ["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"],
+                  "nullable": true
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["seniority", "count"]
+            }
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "RECEIVED",
+                    "SCREENING",
+                    "SHORTLISTED",
+                    "INTERVIEW",
+                    "APPROVED",
+                    "REJECTED"
+                  ]
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["status", "count"]
+            }
+          },
+          "funnel": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "RECEIVED",
+                    "SCREENING",
+                    "SHORTLISTED",
+                    "INTERVIEW",
+                    "APPROVED",
+                    "REJECTED"
+                  ]
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["status", "count"]
+            }
+          },
+          "daily": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricDay"
+            }
+          },
+          "conversion": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "triage": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "averageHours": {
+                "type": "number",
+                "minimum": 0,
+                "nullable": true
+              },
+              "sample": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["averageHours", "sample"]
+          },
+          "compatibility": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "runId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "generatedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "stale": {
+                "type": "boolean"
+              },
+              "averageScore": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "withoutScore": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "bands": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": ["label", "count"]
+                }
+              }
+            },
+            "required": [
+              "runId",
+              "generatedAt",
+              "stale",
+              "averageScore",
+              "total",
+              "withoutScore",
+              "bands"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "period",
+          "jobId",
+          "profiles",
+          "openJobs",
+          "applications",
+          "seniority",
+          "stages",
+          "funnel",
+          "daily",
+          "conversion",
+          "triage",
+          "compatibility"
+        ]
+      },
+      "AdministrationMetrics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/MetricPeriod"
+          },
+          "activeUsers": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "newUsers": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trackedJobs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "auditEvents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": ["CANDIDATE", "RECRUITER", "ADMIN"]
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "active": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["role", "total", "active"]
+            }
+          },
+          "daily": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricDay"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["action", "count"]
+            }
+          }
+        },
+        "required": [
+          "period",
+          "activeUsers",
+          "newUsers",
+          "trackedJobs",
+          "auditEvents",
+          "roles",
+          "daily",
+          "actions"
+        ]
+      },
+      "IntelligenceStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["available", "provider", "reason"]
+      },
+      "RegistrationData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "email", "password", "profile"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "writeOnly": true
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfessionalInput"
+          },
+          "application": {
+            "$ref": "#/components/schemas/ApplicationInput"
+          },
+          "talentConsentVersion": {
+            "type": "string",
+            "enum": ["talent-2026-10-29"]
+          }
+        },
+        "oneOf": [
+          {
+            "required": ["application"],
+            "not": {
+              "required": ["talentConsentVersion"]
+            }
+          },
+          {
+            "required": ["talentConsentVersion"],
+            "not": {
+              "required": ["application"]
+            }
+          }
+        ],
+        "description": "Inscrição final: profile.version=0, shareWithRecruiters=false e name igual ao nome do perfil. Conta, perfil, currículo opcional e finalidade persistidos juntos. Sem cadastro avulso."
+      },
+      "RegistrationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["user", "result"],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "result": {
+            "$ref": "#/components/schemas/ApplicationResult"
+          }
+        }
+      }
+    }
+  }
+}

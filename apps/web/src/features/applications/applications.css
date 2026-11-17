@@ -1,0 +1,192 @@
+.submission-section {
+  max-width: 1100px;
+  margin: 24px auto;
+}
+.submission-section > p {
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.submission-section > .public-job-information {
+  margin-bottom: 24px;
+}
+.application-confirmation {
+  min-height: 100svh;
+  background: linear-gradient(110deg, #183b4c, #201c26 65%, #482236);
+  padding: 8vh 4vw;
+  display: grid;
+  place-items: center;
+}
+.confirmation-card {
+  width: min(1000px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  padding: clamp(24px, 3vw, 40px);
+  box-shadow: 0 6px 12px #0003;
+}
+.confirmation-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.confirmation-card h1 {
+  font-size: clamp(24px, 2vw, 32px);
+  font-weight: 750;
+}
+.confirmation-card h2 {
+  font-size: clamp(22px, 1.8vw, 26px);
+  font-weight: 650;
+  margin-bottom: 14px;
+}
+.confirmation-card p {
+  font-size: 18px;
+  line-height: 1.6;
+}
+.confirmation-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-block: 32px 40px;
+}
+.confirmation-facts > div {
+  flex: 1;
+  min-width: 180px;
+}
+.confirmation-facts dt {
+  margin-bottom: 8px;
+}
+.confirmation-facts dd {
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.my-applications,
+.membership-panel {
+  margin-block: 24px;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 16px;
+  scroll-margin-top: 24px;
+}
+.my-applications h2,
+.membership-panel h2 {
+  margin-bottom: 18px;
+  font-size: 22px;
+  font-weight: 750;
+}
+.membership-panel p {
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.application-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 0;
+  border-bottom: 1px solid #ddd;
+}
+.application-row > div {
+  min-width: 0;
+}
+.application-row h3 {
+  overflow-wrap: anywhere;
+}
+.application-row p {
+  margin-top: 8px;
+}
+.candidate-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+.application-process {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #ddd;
+}
+.application-process > p,
+.application-notes > p {
+  margin-block: 12px;
+}
+.application-process fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.application-process textarea,
+.application-process select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 9px;
+  font: inherit;
+  background: #fff;
+}
+.application-process textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+.application-process form > button,
+.application-process fieldset > button {
+  margin-block: 14px;
+}
+.application-history {
+  margin-block: 20px;
+  overflow-wrap: anywhere;
+}
+.application-row > .application-history {
+  flex-basis: 100%;
+}
+.application-history summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding-block: 8px;
+}
+.process-events {
+  padding-left: 22px;
+}
+.process-events li {
+  padding-block: 16px;
+  border-bottom: 1px solid #ddd;
+  line-height: 1.6;
+}
+.process-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.process-confirmation {
+  margin-block: 18px;
+  padding: 20px;
+  background: #f7f7f7;
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+}
+.process-confirmation p {
+  margin-bottom: 12px;
+}
+.application-notes {
+  margin-top: 28px;
+}
+@media (max-width: 750px) {
+  .confirmation-card header {
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .confirmation-facts {
+    margin-block: 28px;
+  }
+  .my-applications,
+  .membership-panel {
+    padding: 20px;
+  }
+  .candidate-filters > input,
+  .candidate-filters > select {
+    max-width: 100%;
+  }
+}

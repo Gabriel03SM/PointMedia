@@ -1,0 +1,57 @@
+{
+  "name": "point-media",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.6.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12 <23 || >=24 <25",
+    "npm": "^11.6.0"
+  },
+  "scripts": {
+    "app:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-local.ps1 -Build",
+    "app:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-local.ps1 -Action stop",
+    "app:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-local.ps1 -Action status",
+    "check:production": "node scripts/check-production.mjs",
+    "env:setup": "node scripts/setup-env.mjs",
+    "db:local": "node scripts/local-postgres.mjs start",
+    "db:local:stop": "node scripts/local-postgres.mjs stop",
+    "db:local:status": "node scripts/local-postgres.mjs status",
+    "test:local-db": "node --test tests/local-postgres.test.mjs",
+    "predev": "npm run build -w @pointmedia/shared",
+    "dev": "concurrently -k -n api,web \"npm run dev -w @pointmedia/api\" \"npm run dev -w @pointmedia/web\"",
+    "build": "npm run build -w @pointmedia/shared && npm run build -w @pointmedia/api && npm run build -w @pointmedia/web",
+    "typecheck": "npm run build -w @pointmedia/shared && npm run typecheck --workspaces --if-present && npm run typecheck:e2e",
+    "typecheck:e2e": "tsc -p tests/tsconfig.json --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write apps packages docs/*.md *.json *.yml",
+    "format:check": "prettier --check apps packages docs/*.md *.json *.yml",
+    "pretest": "npm run build -w @pointmedia/shared",
+    "test": "npm run test:local-db && npm run test --workspaces --if-present",
+    "pretest:integration": "npm run build -w @pointmedia/shared",
+    "test:integration": "npm run test:integration -w @pointmedia/api",
+    "pretest:e2e": "npm run build",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "db:generate": "npm run db:generate -w @pointmedia/api",
+    "db:migrate": "npm run db:migrate -w @pointmedia/api",
+    "db:seed": "npm run db:seed -w @pointmedia/api"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.0"
+  },
+  "optionalDependencies": {
+    "@embedded-postgres/windows-x64": "17.10.0-beta.17"
+  }
+}

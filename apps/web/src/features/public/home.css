@@ -1,0 +1,349 @@
+.home-page {
+  background: #f7f9fb;
+  min-height: 100svh;
+}
+.home-container {
+  width: min(1120px, calc(100% - 64px));
+  margin-inline: auto;
+}
+.home-header {
+  background: #000;
+  color: #fff;
+}
+.home-header-content {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-block: 12px;
+}
+.public-navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.public-navigation > a:not(.home-login) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+.public-navigation > a[aria-current='page'] {
+  color: var(--pink);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+.public-jobs-page {
+  min-height: calc(100svh - 180px);
+  padding-block: 28px 48px;
+}
+.public-jobs-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-block: 28px;
+}
+.public-jobs-heading h1 {
+  font-size: clamp(26px, 2.5vw, 34px);
+  font-weight: 800;
+  line-height: 1.25;
+}
+.public-jobs-heading .home-section-intro {
+  margin-bottom: 0;
+  font-size: 16px;
+}
+.public-jobs-heading > .home-button {
+  flex-shrink: 0;
+}
+.public-jobs-note {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #d5d5d5;
+  line-height: 1.6;
+}
+.public-jobs-note a {
+  color: var(--pink-text);
+  text-underline-offset: 3px;
+}
+.all-jobs-link {
+  margin-top: 24px;
+}
+.home-title {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: 700;
+}
+.home-login {
+  padding: 9px 28px;
+  background: #4c213e;
+  border-radius: 12px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 700;
+}
+.home-login:hover {
+  background: #6a3158;
+}
+.home-hero {
+  color: #fff;
+  background: linear-gradient(105deg, #4c213e, #193747);
+}
+.home-hero-content {
+  padding-block: 40px 44px;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  align-items: start;
+  gap: 48px;
+}
+.home-wordmark {
+  --brand-height: 36px;
+  margin-bottom: 28px;
+}
+.home-intro h1 {
+  max-width: 590px;
+  font-size: clamp(28px, 2.5vw, 36px);
+  font-weight: 850;
+  line-height: 1.18;
+  text-wrap: balance;
+}
+.home-accent {
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #299dff 53%, #ed4597 53%);
+  margin-block: 24px 18px;
+}
+.home-intro > p {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.home-actions {
+  margin-top: 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.home-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 1px solid #000;
+  border-radius: 14px;
+  background: #000;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.home-button:hover {
+  background: #242424;
+}
+.home-button-light {
+  background: #fff;
+  border-color: #d5d9e1;
+  color: #080808;
+}
+.home-button-light:hover {
+  background: #eee;
+}
+.home-process {
+  background: #fff;
+  border: 1px solid #d5d9e1;
+  color: #080808;
+  border-radius: 22px;
+  padding: 24px;
+  line-height: 1.45;
+}
+.home-process h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.home-process p {
+  color: #626262;
+  font-size: 15px;
+}
+.home-process ol {
+  padding: 0;
+  margin: 30px 0 0;
+  list-style: none;
+  counter-reset: process;
+  display: grid;
+  gap: 14px;
+}
+.home-process li {
+  display: flex;
+  align-items: start;
+  gap: 16px;
+  counter-increment: process;
+}
+.home-process li::before {
+  content: counter(process, decimal-leading-zero);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: #000;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 800;
+}
+.home-process li:nth-child(2)::before,
+.home-process li:nth-child(3)::before {
+  background: #f3f6fb;
+  border: 1px solid #dce2ed;
+  color: #1679c9;
+}
+.home-process li:nth-child(3)::before {
+  color: #b32466;
+}
+.home-process h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+.home-jobs {
+  padding-block: 32px 40px;
+  scroll-margin-top: 24px;
+}
+.home-jobs h2,
+.home-talent h2 {
+  font-size: clamp(24px, 2vw, 28px);
+  line-height: 1.25;
+  font-weight: 800;
+}
+.home-section-intro {
+  color: #575757;
+  font-size: 18px;
+  line-height: 1.5;
+  max-width: 780px;
+  margin-block: 16px 28px;
+}
+.home-notice {
+  border: 1px solid #d5d5d5;
+  border-radius: 20px;
+  background: #fff;
+  padding: 28px;
+  line-height: 1.5;
+}
+.home-notice h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.home-notice p {
+  color: #575757;
+}
+.home-talent {
+  padding-bottom: 48px;
+  scroll-margin-top: 24px;
+}
+.home-talent-content {
+  background: #000;
+  color: #fff;
+  border-radius: 17px;
+  padding: 32px 36px;
+}
+.home-talent-content p {
+  max-width: 760px;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+.home-talent-content .home-talent-notice {
+  color: #dedede;
+  margin-top: 24px;
+}
+.home-footer {
+  background: #000;
+  color: #fff;
+  padding-block: 30px;
+}
+.home-footer > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  line-height: 1.5;
+}
+@media (max-width: 900px) {
+  .home-hero-content {
+    gap: 32px;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 750px) {
+  .home-container {
+    width: calc(100% - 40px);
+  }
+  .home-header-content {
+    min-height: 72px;
+    gap: 16px;
+  }
+  .home-title {
+    gap: 12px;
+    font-size: 18px;
+  }
+  .home-title .brand {
+    --brand-height: 27px;
+  }
+  .public-jobs-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .home-login {
+    padding: 10px 18px;
+    font-size: 17px;
+  }
+  .home-hero-content {
+    grid-template-columns: 1fr;
+    padding-block: 32px 40px;
+    gap: 36px;
+  }
+  .home-wordmark {
+    margin-bottom: 30px;
+  }
+  .home-accent {
+    margin-top: 26px;
+  }
+  .home-process {
+    padding: 24px;
+  }
+  .home-actions {
+    gap: 12px;
+  }
+  .home-button {
+    padding-inline: 18px;
+  }
+  .home-section-intro {
+    font-size: 17px;
+  }
+  .home-jobs {
+    padding-bottom: 40px;
+  }
+  .home-talent {
+    padding-bottom: 40px;
+  }
+  .home-talent-content {
+    padding: 30px 24px;
+  }
+  .home-footer {
+    padding-block: 30px;
+  }
+  .home-footer p {
+    font-size: 14px;
+  }
+}
